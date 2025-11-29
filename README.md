@@ -1,6 +1,6 @@
 # yeongdu-election
 
-An Electron application with React and TypeScript
+간단한 투표 프로그램입니다.(구현중)
 
 ## Recommended IDE Setup
 
