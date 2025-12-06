@@ -86,6 +86,15 @@ app.whenReady().then(() => {
 
     return appState.winner
   })
+  ipcMain.handle('add-winner', (_event, winner: Record<string, string>) => {
+    appState.winner.push(winner)
+
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('winner-updated', appState.winner)
+    })
+
+    return appState.winner
+  })
   ipcMain.handle('vote-candidate', (_event, candidateId: string) => {
     if (!(candidateId in appState.candidate)) {
       appState.candidate[candidateId] = 0 // 새 후보도 자동 추가하고 싶다면
@@ -112,6 +121,28 @@ app.whenReady().then(() => {
     })
 
     return appState.candidate
+  })
+  ipcMain.handle('remove-all-candidate', (_event) => {
+    appState.candidate = {}
+
+    // 모든 창에 브로드캐스트 (차트 실시간 반영용)
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('vote-updated', appState.candidate)
+    })
+
+    return appState.candidate
+  })
+  ipcMain.handle('remove-winner', (_event, name: string) => {
+    appState.winner = appState.winner.filter((person) => person.name !== name)
+
+    // 모든 창에 브로드캐스트 (차트 실시간 반영용)
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('winner-updated', appState.winner)
+    })
+
+    console.log(appState.winner)
+
+    return appState.winner
   })
   ipcMain.handle('remove-vote', (_event, candidateId: string) => {
     if (candidateId in appState.candidate && appState.candidate[candidateId] > 0) {

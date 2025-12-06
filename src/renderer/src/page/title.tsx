@@ -17,6 +17,7 @@ export function TitlePage(): React.JSX.Element {
           <input
             className="flex-4 p-2 mt-2 mb-2 border border-gray-300 rounded"
             placeholder="투표 제목을 입력하세요"
+            value={title}
             onChange={changeTitle}
           ></input>
           <button

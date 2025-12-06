@@ -81,9 +81,9 @@ export function ElectionPage(): React.JSX.Element {
 
     return winner.map((object: Record<string, string>, idx: number) => (
       <div key={idx} className="bg-gray-200 rounded-xl p-4">
-        {object.position}
+        <span className="font-bold text-2xl">{object.position}</span>
         <br />
-        {object.name}
+        <span className="font-bold text-4xl">{object.name}</span>
       </div>
     ))
   }
@@ -92,29 +92,25 @@ export function ElectionPage(): React.JSX.Element {
     <div className="w-full h-full p-8">
       <span className="font-bold text-3xl pb-3">{title}</span>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4 mt-4">
         {data.map((row, index) => {
           const widthPercent = (row.votes / maxVotes) * 100
 
           return (
             <motion.div
+              className="flex items-center"
               key={row.id}
               layout // 🔥 순위가 바뀌면 위/아래 위치가 부드럽게 이동
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8
-              }}
             >
               {/* 순위 번호 */}
               <div className="w-3 text-right font-bold">{index + 1}</div>
 
               {/* 후보 이름 */}
-              <div className="w-25 text-left">{row.name}</div>
+              <div className="w-25 text-xl font-bold text-center">{row.name}</div>
 
               {/* 전체 바 영역 */}
               <div className="bg-gray-200 flex-1 h-10 rounded-2xl overflow-hidden">
@@ -145,9 +141,11 @@ export function ElectionPage(): React.JSX.Element {
           )
         })}
       </div>
-      <span className="text-2xl font-bold mt-4">당선자</span>
-      <div className="mt-2 flex flex-row gap-2">
-        <Winners />
+      <div className="absolute bottom-18">
+        <span className="text-2xl font-bold mt-4">당선자</span>
+        <div className="mt-2 flex flex-row gap-2">
+          <Winners />
+        </div>
       </div>
     </div>
   )

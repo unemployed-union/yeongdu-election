@@ -14,8 +14,12 @@ const api = {
 
   removeCandidate: (candidateId: string): Promise<Record<string, number>> =>
     ipcRenderer.invoke('remove-candidate', candidateId),
+  removeAllCandidate: (): Promise<Record<string, number>> =>
+    ipcRenderer.invoke('remove-all-candidate'),
   removeVote: (candidateId: string): Promise<Record<string, number>> =>
     ipcRenderer.invoke('remove-vote', candidateId),
+  removeWinner: (name: string): Promise<Record<string, number>> =>
+    ipcRenderer.invoke('remove-winner', name),
   vote: (candidateId: string): Promise<Record<string, number>> =>
     ipcRenderer.invoke('vote-candidate', candidateId),
 
@@ -23,6 +27,8 @@ const api = {
     ipcRenderer.invoke('set-election-title', title),
   setWinner: (winner: Record<string, string>): Promise<Record<string, string>[]> =>
     ipcRenderer.invoke('set-winner', winner),
+  addWinner: (winner: Record<string, string>): Promise<Record<string, string>[]> =>
+    ipcRenderer.invoke('add-winner', winner),
 
   onVoteUpdated: (callback: (votes: Record<string, number>) => void): (() => void) => {
     const listener = (_event: unknown, votes: Record<string, number>): void => {

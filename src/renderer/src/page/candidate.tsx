@@ -32,54 +32,68 @@ function Candidate(): React.JSX.Element {
         <hr className="mt-4 mb-4 border-gray-400" />
         {/* 후보자 목록이나 기타 내용이 여기에 들어갑니다. */}
         <div className="flex flex-row width-full">
-          <div className="w-50">이름</div>
-          <div className="w-full">득표</div>
+          <div className="w-50 text-center text-xl">이름</div>
+          <div className="w-full text-center text-xl">득표</div>
+          <div className="flex flex-row gap-2">
+            <button className="mt-1 mb-1 w-20 p-1"></button>
+            <button className="mt-1 mb-1 p-1 w-7"></button>
+            <button className="mt-1 mb-1 p-1 w-7"></button>
+          </div>
         </div>
-        {Object.entries(candidates).map(([name, votes]) => (
-          <div key={name} className="flex flex-row width-full">
-            <div className="w-50">{name}</div>
-            <div className="flex flex-row justify-between w-full">
-              <div>{votes}</div>
-              <div className="flex flex-row gap-2">
-                <button
-                  className="mt-1 mb-1 p-1 bg-red-500 text-white rounded"
-                  onClick={() => window.api.removeCandidate(name)}
-                >
-                  삭제
-                </button>
-                <button
-                  className="mt-1 mb-1 p-1 bg-yellow-500 text-white rounded"
-                  onClick={() => window.api.removeVote(name)}
-                >
-                  -
-                </button>
-                <button
-                  className="mt-1 mb-1 p-1 bg-green-500 text-white rounded"
-                  onClick={() => window.api.vote(name)}
-                >
-                  +
-                </button>
-                <button className="mt-1 mb-1 p-1 bg-blue-500 text-white rounded">당선</button>
+        <div className="flex flex-col width-full">
+          {Object.entries(candidates).map(([name, votes]) => (
+            <div key={name} className="flex flex-row width-full">
+              <div className="flex flex-row justify-between w-full">
+                <div className="w-50 flex justify-center items-center font-bold text-2xl">
+                  {name}
+                </div>
+                <div className="w-full flex justify-center items-center font-bold text-2xl">
+                  {votes}
+                </div>
+                <div className="flex flex-row gap-2">
+                  <button
+                    className="mt-1 mb-1 w-20 p-1 bg-red-500 text-white rounded"
+                    onClick={() => window.api.removeCandidate(name)}
+                  >
+                    삭제
+                  </button>
+                  <button
+                    className="mt-1 mb-1 p-1 w-7 bg-yellow-500 text-white rounded"
+                    onClick={() => window.api.removeVote(name)}
+                  >
+                    -
+                  </button>
+                  <button
+                    className="mt-1 mb-1 p-1 w-7 bg-green-500 text-white rounded"
+                    onClick={() => window.api.vote(name)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         <div className="flex flex-row gap-2">
           <input
             className="flex-4 p-2 mt-2 mb-2 border border-gray-300 rounded"
             placeholder="이름"
+            value={candidate}
             onChange={changeCandidate}
           ></input>
           <button
             className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
-            onClick={() => window.api.vote(candidate)}
+            onClick={() => {
+              window.api.vote(candidate)
+              setCandidate('')
+            }}
           >
             후보자 추가
           </button>
         </div>
         <div className="flex flex-row gap-2">
           <button
-            className="flex-1 mt-2 mb-2 p-2 bg-blue-300 text-white rounded"
+            className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
             onClick={() => {
               window.api.openWinnerWindow()
             }}
@@ -87,7 +101,7 @@ function Candidate(): React.JSX.Element {
             당선자 설정
           </button>
           <button
-            className="flex-1 mt-2 mb-2 p-2 bg-blue-300 text-white rounded"
+            className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
             onClick={() => {
               window.api.openSubWindow()
             }}
@@ -102,7 +116,15 @@ function Candidate(): React.JSX.Element {
           >
             시작
           </button>
-          <button className="flex-1 mt-2 mb-2 p-2 bg-red-500 text-white rounded">초기화</button>
+          <button
+            className="flex-1 mt-2 mb-2 p-2 bg-red-500 text-white rounded"
+            onClick={() => {
+              window.api.removeAllCandidate()
+              window.api.setElectionTitle('')
+            }}
+          >
+            후보자 및 제목 초기화
+          </button>
         </div>
       </div>
     </div>
