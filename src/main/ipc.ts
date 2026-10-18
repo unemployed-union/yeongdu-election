@@ -50,4 +50,9 @@ export function registerElectionIpc(store: ElectionStore): void {
   handle('setWinner', (winners) => publish(IPC_EVENTS.winners, store.setWinners(winners)))
   handle('addWinner', (winner) => publish(IPC_EVENTS.winners, store.addWinner(winner)))
   handle('removeWinner', (name) => publish(IPC_EVENTS.winners, store.removeWinner(name)))
+  handle('confirmWinner', (winner) => {
+    const confirmed = store.confirmWinner(winner)
+    publish(IPC_EVENTS.winners, store.getWinners())
+    return publish(IPC_EVENTS.winnerConfirmed, confirmed)
+  })
 }

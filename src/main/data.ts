@@ -67,4 +67,14 @@ export class ElectionStore {
     this.state.winner = this.state.winner.filter((winner) => winner.name !== name)
     return this.getWinners()
   }
+
+  confirmWinner(winner: Winner): Winner {
+    const storedWinner = this.state.winner.find(
+      (person) => person.name === winner.name && person.position === winner.position
+    )
+    if (!storedWinner) throw new Error('등록되지 않은 당선자입니다.')
+    if (storedWinner.confirmed) throw new Error('이미 당선이 확정되었습니다.')
+    storedWinner.confirmed = true
+    return { ...storedWinner }
+  }
 }

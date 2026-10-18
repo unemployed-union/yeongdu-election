@@ -1,6 +1,47 @@
-import { deepStrictEqual, equal } from 'node:assert/strict'
+import { deepStrictEqual, equal, throws } from 'node:assert/strict'
 import { test } from 'node:test'
 import { ElectionStore } from '../src/main/data'
+
+test('confirming a registered winner persists the status and returns a copy', () => {
+  const store = new ElectionStore()
+  const winner = { name: 'Alice', position: 'Chair' }
+  store.addWinner(winner)
+  const confirmed = store.confirmWinner(winner)
+  deepStrictEqual(confirmed, { ...winner, confirmed: true })
+  confirmed.name = 'Changed output'
+  deepStrictEqual(store.getWinners(), [{ ...winner, confirmed: true }])
+})
+
+test('a winner cannot be confirmed twice or after removal', () => {
+  const store = new ElectionStore()
+  const winner = { name: 'Alice', position: 'Chair' }
+  store.addWinner(winner)
+  store.confirmWinner(winner)
+  throws(() => store.confirmWinner(winner), /이미/)
+  store.removeWinner(winner.name)
+  throws(() => store.confirmWinner(winner), /등록되지/)
+})
+
+test('confirmation requires both a registered name and position', () => {
+  const store = new ElectionStore()
+  store.addWinner({ name: 'Alice', position: 'Chair' })
+  store.addWinner({ name: 'Alice', position: 'Secretary' })
+  store.confirmWinner({ name: 'Alice', position: 'Secretary' })
+  equal(store.getWinners()[0].confirmed, undefined)
+  equal(store.getWinners()[1].confirmed, true)
+  throws(() => store.confirmWinner({ name: 'Alice', position: 'Other' }), /등록되지/)
+})
+
+test('removing and registering a winner starts a new unconfirmed entry', () => {
+  const store = new ElectionStore()
+  const winner = { name: 'Alice', position: 'Chair' }
+  store.addWinner(winner)
+  store.confirmWinner(winner)
+  store.removeWinner(winner.name)
+  store.addWinner(winner)
+  equal(store.getWinners()[0].confirmed, undefined)
+  equal(store.confirmWinner(winner).confirmed, true)
+})
 
 test('a candidate starts at zero votes and duplicate registration preserves votes', () => {
   const store = new ElectionStore()

@@ -1,118 +1,224 @@
 import { useState } from 'react'
-import { useCandidates } from '../hooks/useElection'
+import type { FormEvent } from 'react'
+import { EmptyState, Icon } from '../components/ui'
+import { ConfirmWinnerDialog } from '../components/ConfirmWinnerDialog'
+import { useCandidates, useElectionTitle, useWinners } from '../hooks/useElection'
+import { useAsyncAction } from '../hooks/useAsyncAction'
 
 function Candidate(): React.JSX.Element {
-  const [candidate, setCandidate] = useState<string>('')
+  const [candidate, setCandidate] = useState('')
+  const [confirmingName, setConfirmingName] = useState<string | null>(null)
+  const [confirmationMessage, setConfirmationMessage] = useState('')
   const candidates = useCandidates()
+  const title = useElectionTitle()
+  const winners = useWinners()
+  const { pending, error, run } = useAsyncAction()
+  const entries = Object.entries(candidates)
+  const totalVotes = entries.reduce((total, [, votes]) => total + votes, 0)
+  const duplicate = Object.hasOwn(candidates, candidate.trim())
 
-  const changeCandidate = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setCandidate(e.target.value)
+  async function addCandidate(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault()
+    if (pending || !candidate.trim() || duplicate) return
+    if (await run(() => window.api.addCandidate(candidate.trim()))) setCandidate('')
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <span className="text-3xl font-bold">후보자 페이지</span>
-      <p>여기에 후보자 관련 내용을 추가하세요.</p>
-      <div className="width-full">
-        <hr className="mt-4 mb-4 border-gray-400" />
-        {/* 후보자 목록이나 기타 내용이 여기에 들어갑니다. */}
-        <div className="flex flex-row width-full">
-          <div className="w-50 text-center text-xl">이름</div>
-          <div className="w-full text-center text-xl">득표</div>
-          <div className="flex flex-row gap-2">
-            <button className="mt-1 mb-1 w-20 p-1"></button>
-            <button className="mt-1 mb-1 p-1 w-7"></button>
-            <button className="mt-1 mb-1 p-1 w-7"></button>
-          </div>
+    <div className="workspace-page">
+      <div className="page-heading workspace-heading">
+        <div>
+          <span className="eyebrow">ELECTION WORKSPACE</span>
+          <h1>투표 관리</h1>
+          <p>후보자를 준비하고, 모이는 한 표를 기록해 주세요.</p>
         </div>
-        <div className="flex flex-col width-full">
-          {Object.entries(candidates).map(([name, votes]) => (
-            <div key={name} className="flex flex-row width-full">
-              <div className="flex flex-row justify-between w-full">
-                <div className="w-50 flex justify-center items-center font-bold text-2xl">
-                  {name}
-                </div>
-                <div className="w-full flex justify-center items-center font-bold text-2xl">
-                  {votes}
-                </div>
-                <div className="flex flex-row gap-2">
-                  <button
-                    className="mt-1 mb-1 w-20 p-1 bg-red-500 text-white rounded"
-                    onClick={() => window.api.removeCandidate(name)}
-                  >
-                    삭제
-                  </button>
-                  <button
-                    className="mt-1 mb-1 p-1 w-7 bg-yellow-500 text-white rounded"
-                    onClick={() => window.api.removeVote(name)}
-                  >
-                    -
-                  </button>
-                  <button
-                    className="mt-1 mb-1 p-1 w-7 bg-green-500 text-white rounded"
-                    onClick={() => window.api.vote(name)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-row gap-2">
-          <input
-            className="flex-4 p-2 mt-2 mb-2 border border-gray-300 rounded"
-            placeholder="이름"
-            value={candidate}
-            onChange={changeCandidate}
-          ></input>
-          <button
-            className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
-            disabled={!candidate.trim() || Object.hasOwn(candidates, candidate.trim())}
-            onClick={async () => {
-              await window.api.addCandidate(candidate)
-              setCandidate('')
-            }}
-          >
-            후보자 추가
-          </button>
-        </div>
-        <div className="flex flex-row gap-2">
-          <button
-            className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
-            onClick={() => {
-              window.api.openWinnerWindow()
-            }}
-          >
-            당선자 설정
-          </button>
-          <button
-            className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
-            onClick={() => {
-              window.api.openSubWindow()
-            }}
-          >
-            투표 제목 설정
-          </button>
-        </div>
-        <div className="flex flex-row gap-2">
-          <button
-            className="flex-1 mt-2 mb-2 p-2 bg-green-500 text-white rounded"
-            onClick={() => window.api.openElectionWindow()}
-          >
-            시작
-          </button>
-          <button
-            className="flex-1 mt-2 mb-2 p-2 bg-red-500 text-white rounded"
-            onClick={() => {
-              window.api.removeAllCandidate()
-              window.api.setElectionTitle('')
-            }}
-          >
-            후보자 및 제목 초기화
-          </button>
-        </div>
+        <button className="button button-primary" onClick={() => window.api.openElectionWindow()}>
+          결과 화면 열기
+          <Icon name="external" />
+        </button>
       </div>
+      <div className="workspace-grid">
+        <section className="panel candidate-panel" aria-labelledby="candidate-heading">
+          <div className="panel-heading">
+            <h2 id="candidate-heading">
+              후보자<span className="count-badge">{entries.length}</span>
+            </h2>
+            <span className="subtle-label">한 표씩 차곡차곡</span>
+          </div>
+          <div className="candidate-table-head">
+            <span>이름</span>
+            <span>득표 조정</span>
+            <span>당선</span>
+            <span className="sr-only">삭제</span>
+          </div>
+          <div className="candidate-list">
+            {entries.length === 0 ? (
+              <EmptyState icon="users" title="첫 후보자를 기다리고 있어요">
+                아래에서 이름을 입력해 시작해 주세요.
+              </EmptyState>
+            ) : (
+              entries.map(([name, votes], index) => {
+                const registered = winners.filter((person) => person.name === name)
+                const confirmed =
+                  registered.length > 0 && registered.every((person) => person.confirmed)
+                return (
+                  <div key={name} className="candidate-row">
+                    <div className="person">
+                      <span className={`avatar avatar-${index % 4}`} aria-hidden="true">
+                        {name.slice(0, 1)}
+                      </span>
+                      <span className="person-name" title={name}>
+                        {name}
+                      </span>
+                    </div>
+                    <div className="vote-stepper">
+                      <button
+                        className="stepper-button"
+                        disabled={votes === 0}
+                        aria-label={`${name} 1표 감소`}
+                        onClick={() => window.api.removeVote(name)}
+                      >
+                        <Icon name="minus" />
+                      </button>
+                      <span className="vote-count" aria-label={`${votes}표`}>
+                        {votes}
+                      </span>
+                      <button
+                        className="stepper-button stepper-add"
+                        aria-label={`${name} 1표 추가`}
+                        onClick={() => window.api.vote(name)}
+                      >
+                        <Icon name="plus" />
+                      </button>
+                    </div>
+                    <button
+                      className={`button winner-confirm-button ${confirmed ? 'button-confirmed' : 'button-primary'}`}
+                      disabled={confirmed}
+                      aria-label={`${name} ${confirmed ? '확정됨' : '당선 확정'}`}
+                      onClick={() => setConfirmingName(name)}
+                    >
+                      <Icon name="check" />
+                      {confirmed ? '확정됨' : '당선 확정'}
+                    </button>
+                    <button
+                      className="icon-button delete-button"
+                      aria-label={`${name} 후보자 삭제`}
+                      title="후보자 삭제"
+                      onClick={() => window.api.removeCandidate(name)}
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </div>
+                )
+              })
+            )}
+          </div>
+          <form className="candidate-form" onSubmit={addCandidate}>
+            <label className="sr-only" htmlFor="candidate-name">
+              후보자 이름
+            </label>
+            <div className="input-action">
+              <input
+                id="candidate-name"
+                autoComplete="off"
+                placeholder="후보자 이름을 입력하세요"
+                value={candidate}
+                onChange={(event) => setCandidate(event.target.value)}
+                aria-describedby="candidate-help"
+                aria-invalid={duplicate}
+              />
+              <button
+                className="button button-primary"
+                disabled={pending || !candidate.trim() || duplicate}
+                type="submit"
+              >
+                <Icon name="plus" />
+                {pending ? '추가 중' : '추가'}
+              </button>
+            </div>
+            <p id="candidate-help" className={`field-hint ${duplicate ? 'text-danger' : ''}`}>
+              {duplicate ? '이미 등록된 후보자예요.' : '새 후보자는 0표로 등록됩니다.'}
+            </p>
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+          </form>
+        </section>
+        <aside className="settings-column" aria-label="투표 설정">
+          <section className="panel settings-panel">
+            <h2>투표 설정</h2>
+            <button className="setting-link" onClick={() => window.api.openSubWindow()}>
+              <span className="setting-icon">
+                <Icon name="title" />
+              </span>
+              <span className="setting-copy">
+                <strong>투표 제목</strong>
+                <span title={title}>{title || '제목을 설정해 주세요'}</span>
+              </span>
+              <Icon name="external" />
+            </button>
+            <button className="setting-link" onClick={() => window.api.openWinnerWindow()}>
+              <span className="setting-icon">
+                <Icon name="award" />
+              </span>
+              <span className="setting-copy">
+                <strong>당선자 설정</strong>
+                <span>
+                  {winners.length
+                    ? `${winners.length}명의 당선자가 등록되어 있어요`
+                    : '당선자와 직위를 등록하세요'}
+                </span>
+              </span>
+              <Icon name="external" />
+            </button>
+          </section>
+          <section className="summary-panel" aria-label="집계 현황">
+            <span className="eyebrow">지금까지 모인 선택</span>
+            <div className="summary-number">
+              {totalVotes.toLocaleString()}
+              <span>표</span>
+            </div>
+            <p>
+              <span className="status-dot" />
+              {entries.length}명의 후보자가 함께하고 있어요
+            </p>
+          </section>
+          <p className="workspace-tip">
+            <Icon name="chart" />
+            결과 화면을 별도 창으로 열어
+            <br />
+            참여자들과 함께 확인해 보세요.
+          </p>
+        </aside>
+      </div>
+      <footer className="workspace-footer">
+        <span role="status">
+          <span className="status-dot" />
+          {confirmationMessage || '변경 사항은 결과 화면에 바로 반영됩니다.'}
+        </span>
+        <button
+          className="text-button reset-button"
+          onClick={() => {
+            void window.api.removeAllCandidate()
+            void window.api.setElectionTitle('')
+          }}
+        >
+          <Icon name="reset" />
+          후보자·제목 초기화
+        </button>
+      </footer>
+      {confirmingName !== null && (
+        <ConfirmWinnerDialog
+          name={confirmingName}
+          winners={winners}
+          onClose={() => setConfirmingName(null)}
+          onConfirmed={() => {
+            setConfirmationMessage(`${confirmingName} 님의 당선이 확정되었습니다.`)
+            setConfirmingName(null)
+          }}
+        />
+      )}
     </div>
   )
 }

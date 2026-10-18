@@ -8,6 +8,7 @@ export type CandidateVotes = Record<Candidate['name'], Candidate['votes']>
 export interface Winner {
   name: string
   position: string
+  confirmed?: boolean
 }
 
 export interface ElectionState {
@@ -34,6 +35,7 @@ export interface ElectionCommands {
   setWinner: (winners: Winner[]) => Promise<Winner[]>
   addWinner: (winner: Winner) => Promise<Winner[]>
   removeWinner: (name: string) => Promise<Winner[]>
+  confirmWinner: (winner: Winner) => Promise<Winner>
 }
 
 export const IPC_CHANNELS = {
@@ -51,23 +53,27 @@ export const IPC_CHANNELS = {
   getWinner: 'get-winner',
   setWinner: 'set-winner',
   addWinner: 'add-winner',
-  removeWinner: 'remove-winner'
+  removeWinner: 'remove-winner',
+  confirmWinner: 'confirm-winner'
 } as const satisfies Record<keyof ElectionCommands, string>
 
 export const IPC_EVENTS = {
   votes: 'vote-updated',
   title: 'title-updated',
-  winners: 'winner-updated'
+  winners: 'winner-updated',
+  winnerConfirmed: 'winner-confirmed'
 } as const
 
 export interface ElectionEvents {
   [IPC_EVENTS.votes]: CandidateVotes
   [IPC_EVENTS.title]: string
   [IPC_EVENTS.winners]: Winner[]
+  [IPC_EVENTS.winnerConfirmed]: Winner
 }
 
 export interface ElectionApi extends ElectionCommands {
   onVoteUpdated: (callback: (votes: CandidateVotes) => void) => Unsubscribe
   onTitleUpdated: (callback: (title: string) => void) => Unsubscribe
   onWinnerUpdated: (callback: (winners: Winner[]) => void) => Unsubscribe
+  onWinnerConfirmed: (callback: (winner: Winner) => void) => Unsubscribe
 }

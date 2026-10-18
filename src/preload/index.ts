@@ -38,9 +38,11 @@ const api: ElectionApi = {
   setWinner: (winners) => invoke('setWinner', winners),
   addWinner: (winner) => invoke('addWinner', winner),
   removeWinner: (name) => invoke('removeWinner', name),
+  confirmWinner: (winner) => invoke('confirmWinner', winner),
   onVoteUpdated: (callback) => subscribe(IPC_EVENTS.votes, callback),
   onTitleUpdated: (callback) => subscribe(IPC_EVENTS.title, callback),
-  onWinnerUpdated: (callback) => subscribe(IPC_EVENTS.winners, callback)
+  onWinnerUpdated: (callback) => subscribe(IPC_EVENTS.winners, callback),
+  onWinnerConfirmed: (callback) => subscribe(IPC_EVENTS.winnerConfirmed, callback)
 }
 
 contextBridge.exposeInMainWorld('api', api)
