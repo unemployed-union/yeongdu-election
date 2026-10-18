@@ -1,28 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useCandidates } from '../hooks/useElection'
 
 function Candidate(): React.JSX.Element {
   const [candidate, setCandidate] = useState<string>('')
-  const [candidates, setCandidates] = useState<Record<string, number>>({})
+  const candidates = useCandidates()
 
   const changeCandidate = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setCandidate(e.target.value)
   }
-
-  useEffect(() => {
-    window.api.getCandidate().then((votes) => {
-      setCandidates(votes)
-    })
-
-    // ② 메인에서 오는 "vote-updated" 이벤트 구독
-    const unsubscribe = window.api.onVoteUpdated((votes) => {
-      setCandidates(votes)
-    })
-
-    // ③ 언마운트 시 구독 해제
-    return () => {
-      unsubscribe?.()
-    }
-  }, [])
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -83,8 +68,9 @@ function Candidate(): React.JSX.Element {
           ></input>
           <button
             className="flex-1 mt-2 mb-2 p-2 bg-blue-500 text-white rounded"
-            onClick={() => {
-              window.api.vote(candidate)
+            disabled={!candidate.trim() || Object.hasOwn(candidates, candidate.trim())}
+            onClick={async () => {
+              await window.api.addCandidate(candidate)
               setCandidate('')
             }}
           >

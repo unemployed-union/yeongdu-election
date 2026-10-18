@@ -1,8 +1,7 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
+import type { ElectionApi } from '../shared/election'
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: unknown
+    api: ElectionApi
   }
 }

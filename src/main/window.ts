@@ -1,74 +1,47 @@
-// src/main/windows.ts
-import { BrowserWindow } from 'electron'
-import path from 'node:path'
+import { BrowserWindow, shell } from 'electron'
+import { join } from 'node:path'
+import { is } from '@electron-toolkit/utils'
+import icon from '../../resources/icon.png?asset'
 
-const isDev = process.env.NODE_ENV === 'development'
+type WindowPage = 'main' | 'title' | 'winner' | 'election'
 
-export function createSubWindow(): BrowserWindow {
-  const win = new BrowserWindow({
-    width: 600,
-    height: 500,
+const windowOptions = {
+  main: { width: 900, height: 670, route: '/' },
+  title: { width: 600, height: 500, route: '/title' },
+  winner: { width: 600, height: 500, route: '/winner' },
+  election: { width: 800, height: 600, route: '/election' }
+} satisfies Record<WindowPage, { width: number; height: number; route: string }>
+
+export function createWindow(page: WindowPage = 'main'): BrowserWindow {
+  const { width, height, route } = windowOptions[page]
+  const window = new BrowserWindow({
+    width,
+    height,
+    show: false,
+    autoHideMenuBar: true,
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js')
+      preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
     }
   })
 
-  if (isDev) {
-    // React Router로 /sub 같은 라우트가 있다고 가정
-    const url = `${process.env['ELECTRON_RENDERER_URL']}/#/title`
-    win.loadURL(url)
-  } else {
-    // 빌드된 index.html을 /sub 라우트로 로드
-    win.loadFile(path.join(__dirname, '../renderer/index.html'), {
-      hash: 'title'
-    })
-  }
-
-  return win
-}
-
-export function createWinnerWindow(): BrowserWindow {
-  const win = new BrowserWindow({
-    width: 600,
-    height: 500,
-    webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js')
-    }
+  window.once('ready-to-show', () => window.show())
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    void shell.openExternal(url)
+    return { action: 'deny' }
   })
 
-  if (isDev) {
-    // React Router로 /sub 같은 라우트가 있다고 가정
-    const url = `${process.env['ELECTRON_RENDERER_URL']}/#/winner`
-    win.loadURL(url)
+  const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+  if (is.dev && rendererUrl) {
+    const url = new URL(rendererUrl)
+    url.hash = route
+    void window.loadURL(url.toString())
   } else {
-    // 빌드된 index.html을 /sub 라우트로 로드
-    win.loadFile(path.join(__dirname, '../renderer/index.html'), {
-      hash: 'winner'
-    })
+    void window.loadFile(join(__dirname, '../renderer/index.html'), { hash: route })
   }
 
-  return win
-}
-
-export function createElectionWindow(): BrowserWindow {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js')
-    }
-  })
-
-  if (isDev) {
-    // React Router로 /sub 같은 라우트가 있다고 가정
-    const url = `${process.env['ELECTRON_RENDERER_URL']}/#/election`
-    win.loadURL(url)
-  } else {
-    // 빌드된 index.html을 /sub 라우트로 로드
-    win.loadFile(path.join(__dirname, '../renderer/index.html'), {
-      hash: 'election'
-    })
-  }
-
-  return win
+  return window
 }

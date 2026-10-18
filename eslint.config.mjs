@@ -26,7 +26,7 @@ export default defineConfig(
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error'
     }
   },
   eslintConfigPrettier

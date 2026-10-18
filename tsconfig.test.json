@@ -1,0 +1,12 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "compilerOptions": {
+    "composite": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": ".",
+    "outDir": "out/tests",
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts"]
+}

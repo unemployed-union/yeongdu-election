@@ -1,26 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import type { Winner } from '../../../shared/election'
+import { useWinners } from '../hooks/useElection'
 
 export function WinnerPage(): React.JSX.Element {
-  const [winner, setWinner] = useState<Record<string, string>[]>([])
-  const [newWinner, setNewWinner] = useState<Record<string, string>>({ name: '', position: '' })
+  const winner = useWinners()
+  const [newWinner, setNewWinner] = useState<Winner>({ name: '', position: '' })
 
-  function onChange(e: React.ChangeEvent<HTMLInputElement>, target: string): void {
-    setNewWinner({ ...newWinner, [target]: e.target.value })
+  function onChange(e: React.ChangeEvent<HTMLInputElement>, target: keyof Winner): void {
+    setNewWinner((previous) => ({ ...previous, [target]: e.target.value }))
   }
-
-  useEffect(() => {
-    window.api.getWinner().then((data) => {
-      setWinner(data)
-    })
-
-    const unsubscribe = window.api.onWinnerUpdated((data) => {
-      setWinner(data)
-    })
-
-    return () => {
-      unsubscribe?.()
-    }
-  }, [])
 
   return (
     <div className="h-full w-full flex flex-col">

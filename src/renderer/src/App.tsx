@@ -6,8 +6,6 @@ import WinnerPage from './page/winner'
 import { ElectionPage } from './page/election'
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-
   return (
     <div className="flex h-full p-9 flex-col items-center justify-center gap-4">
       <Routes>
