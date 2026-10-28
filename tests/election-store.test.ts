@@ -90,14 +90,18 @@ test('returned candidate snapshots cannot mutate stored votes or change retroact
   deepStrictEqual(snapshot, { Alice: 0 })
 })
 
-test('clearing candidates preserves the title and winners', () => {
+test('clearing candidates and votes preserves the title and confirmed winners', () => {
   const store = new ElectionStore()
   store.setTitle('Election')
   store.addWinner({ name: 'Alice', position: 'Chair' })
+  store.confirmWinner({ name: 'Alice', position: 'Chair' })
   store.addCandidate('Alice')
+  store.addCandidate('Bob')
+  store.vote('Alice')
+  store.vote('Bob')
   deepStrictEqual(store.removeAllCandidates(), {})
   equal(store.getTitle(), 'Election')
-  deepStrictEqual(store.getWinners(), [{ name: 'Alice', position: 'Chair' }])
+  deepStrictEqual(store.getWinners(), [{ name: 'Alice', position: 'Chair', confirmed: true }])
   equal(store.setTitle(''), '')
 })
 

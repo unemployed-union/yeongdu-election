@@ -23,6 +23,15 @@ function Candidate(): React.JSX.Element {
     if (await run(() => window.api.addCandidate(candidate.trim()))) setCandidate('')
   }
 
+  async function resetCandidates(): Promise<void> {
+    if (pending || entries.length === 0) return
+    if (await run(() => window.api.removeAllCandidate())) {
+      setCandidate('')
+      setConfirmingName(null)
+      setConfirmationMessage('후보자를 초기화했습니다. 당선자 목록은 유지됩니다.')
+    }
+  }
+
   return (
     <div className="workspace-page">
       <div className="page-heading workspace-heading">
@@ -42,7 +51,15 @@ function Candidate(): React.JSX.Element {
             <h2 id="candidate-heading">
               후보자<span className="count-badge">{entries.length}</span>
             </h2>
-            <span className="subtle-label">한 표씩 차곡차곡</span>
+            <button
+              className="button candidate-reset-button"
+              disabled={pending || entries.length === 0}
+              title="후보자와 득표만 초기화합니다. 당선자와 투표 제목은 유지됩니다."
+              onClick={resetCandidates}
+            >
+              <Icon name="reset" />
+              후보자 초기화
+            </button>
           </div>
           <div className="candidate-table-head">
             <span>이름</span>
@@ -197,16 +214,6 @@ function Candidate(): React.JSX.Element {
           <span className="status-dot" />
           {confirmationMessage || '변경 사항은 결과 화면에 바로 반영됩니다.'}
         </span>
-        <button
-          className="text-button reset-button"
-          onClick={() => {
-            void window.api.removeAllCandidate()
-            void window.api.setElectionTitle('')
-          }}
-        >
-          <Icon name="reset" />
-          후보자·제목 초기화
-        </button>
       </footer>
       {confirmingName !== null && (
         <ConfirmWinnerDialog

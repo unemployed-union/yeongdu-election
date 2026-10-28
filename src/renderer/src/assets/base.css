@@ -575,8 +575,26 @@ input[aria-invalid='true'] {
   width: 13px;
   height: 13px;
 }
-.reset-button:hover {
-  color: var(--danger);
+.candidate-reset-button {
+  min-height: 34px;
+  padding: 0 12px;
+  background: #fbefea;
+  border-color: #e7c6bc;
+  color: #a34d3e;
+  font-size: 11px;
+  font-weight: 650;
+}
+.candidate-reset-button:hover:not(:disabled) {
+  background: #f6dfd6;
+  border-color: #ce9687;
+}
+.candidate-reset-button:disabled {
+  background: #f4f3ee;
+  border-color: #e3e5dc;
+  color: #92988b;
+}
+.candidate-panel > .panel-heading {
+  padding-block: 12px;
 }
 .empty-state {
   min-height: 100%;
